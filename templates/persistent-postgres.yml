@@ -1,0 +1,62 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  name: '${NAME}'
+  annotations:
+    openshift.io/display-name: S2I App Build Template
+    description: S2I binary build config to create an image with your app baked in.
+    iconClass: fa-cube
+    tags: s2i
+objects:
+  - kind: Secret
+    apiVersion: v1
+    metadata:
+      name: postgresql-persistent-parameters
+    data:
+      parameters: eyJEQVRBQkFTRV9TRVJWSUNFX05BTUUiOiJwb3N0Z3Jlc3FsIiwiTUVNT1JZX0xJTUlUIjoiNTEyTWkiLCJOQU1FU1BBQ0UiOiJvcGVuc2hpZnQiLCJQT1NUR1JFU1FMX0RBVEFCQVNFIjoic2FtcGxlZGIiLCJQT1NUR1JFU1FMX1BBU1NXT1JEIjoiIiwiUE9TVEdSRVNRTF9VU0VSIjoiIiwiUE9TVEdSRVNRTF9WRVJTSU9OIjoiMTAiLCJWT0xVTUVfQ0FQQUNJVFkiOiIxR2kifQ==
+    type: Opaque
+
+  - kind: ServiceInstance
+    apiVersion: servicecatalog.k8s.io/v1beta1
+    metadata:
+      name: postgresql-persistent
+      finalizers:
+        - kubernetes-incubator/service-catalog
+    spec:
+      clusterServiceClassExternalName: postgresql-persistent
+      clusterServicePlanExternalName: default
+      parametersFrom:
+        - secretKeyRef:
+            name: postgresql-persistent-parameters
+            key: parameters
+      userInfo:
+        groups:
+          - OPENTLC-PROJECT-PROVISIONERS
+          - 'system:authenticated:oauth'
+          - 'system:authenticated'
+        extra:
+          scopes.authorization.openshift.io:
+            - 'user:full'
+      updateRequests: 0
+
+  - kind: ServiceBinding
+    apiVersion: servicecatalog.k8s.io/v1beta1
+    metadata:
+      name: postgresql-persistent-service-binding
+      selfLink: >-
+        /apis/servicecatalog.k8s.io/v1beta1/namespaces/dangres/servicebindings/postgresql-persistent-service-binding
+      finalizers:
+        - kubernetes-incubator/service-catalog
+    spec:
+      instanceRef:
+        name: postgresql-persistent
+      secretName: postgresql-persistent-service-binding
+      userInfo:
+        groups:
+          - OPENTLC-PROJECT-PROVISIONERS
+          - 'system:authenticated:oauth'
+          - 'system:authenticated'
+        extra:
+          scopes.authorization.openshift.io:
+            - user:full'

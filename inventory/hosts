@@ -6,3 +6,4 @@ frontend
 survey-openapi-web
 survey-spring-service
 manager-frontend
+persistent-postgres

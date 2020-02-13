@@ -67,12 +67,26 @@ objects:
             - containerPort: 8080
               protocol: TCP
             env: 
-            - name: REACT_APP_AUTH_SERVER_URL
-              value: http://keycloak-consultant-360-dev.apps.shared-dev.dev.openshift.opentlc.com/auth
-            - name:  REACT_APP_BACKEND_URL
-              value: /mocks
-            - name:  REACT_APP_MOCK_USERS
-              value: "true"
+            - name: POSTGRES_URI
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-persistent-service-binding
+                  key: uri
+            - name: POSTGRES_DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-persistent-service-binding
+                  key: DATABASE_NAME
+            - name: POSTGRES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-persistent-service-binding
+                  key: USERNAME
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-persistent-service-binding
+                  key: PASSWORD
       triggers:
       - type: ConfigChange
       - imageChangeParams:

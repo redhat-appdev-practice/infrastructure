@@ -30,6 +30,12 @@ ansible-playbook site.yml -i inventory/hosts -l consultant360
 ansible-playbook site.yml -i inventory/hosts -l consultant360 -e "include_tags=survey-openapi"
 ```
 
+##### Deploying only the Persistent Postgres Database
+
+```
+ansible-playbook site.yml -i inventory/hosts -l consultant360 -e "include_tags=persistent-postgres"
+```
+
 ## Mac Users!
 
 > **WARNING:\_** A recent update has placed a limit of the number of forks a process can create. To disable this, set **OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES**

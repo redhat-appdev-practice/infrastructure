@@ -1,3 +1,3 @@
-PIPELINE_SOURCE_REPOSITORY_URL=https://gitlab.consulting.redhat.com/appdev-coe/consultant-360-feedback/consultatn360-springcrud.git
+PIPELINE_SOURCE_REPOSITORY_URL=https://gitlab.consulting.redhat.com/appdev-coe/consultant-360-feedback/survey-spring-service.git
 PIPELINE_SOURCE_REPOSITORY_REF=
 NAME=survey-service
