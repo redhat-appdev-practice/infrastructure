@@ -67,12 +67,8 @@ objects:
                 - containerPort: 8080
                   protocol: TCP
               env:
-                - name: REACT_APP_AUTH_SERVER_URL
-                  value: http://keycloak-consultant-360-dev.apps.shared-dev.dev.openshift.opentlc.com/auth
-                - name: REACT_APP_BACKEND_URL
-                  value: /mocks
-                - name: REACT_APP_MOCK_USERS
-                  value: 'true'
+                - name: REACT_APP_STAGE
+                  value: production
       triggers:
         - type: ConfigChange
         - imageChangeParams:
