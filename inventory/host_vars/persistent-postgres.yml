@@ -4,14 +4,21 @@ ansible_connection: local
 build:
   NAME: '{{ app_name }}'
 
+surveydb:
+  DATABASE_SERVICE_NAME: 'surveydb'
+  POSTGRESQL_DATABASE: 'surveydb'
+  VOLUME_CAPACITY: '5Gi'
+  POSTGRESQL_PASSWORD: 'somepassword'
+  POSTGRESQL_USER: 'someusername'
+
 openshift_cluster_content:
   - object: app-builds
     content:
-      - name: persistent-postgres
-        template: '{{ playbook_dir }}/templates/persistent-postgres.yml'
-        params: "{{ playbook_dir }}/params/persistent-postgres"
-        namespace: "{{ dev_namespace }}"
-        tags:
-        - persistent-postgres
-
+    - name: survey-db
+      template: openshift//postgresql-persistent
+      params_from_vars: "{{ surveydb }}"
+      namespace: "consultant-360-dev"
+      tags:
+      - app-dev-deploy
+      - health-db-deploy
 
