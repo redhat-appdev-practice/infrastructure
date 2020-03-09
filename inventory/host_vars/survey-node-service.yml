@@ -1,0 +1,24 @@
+---
+ansible_connection: local
+
+build:
+  NAME: '{{ app_name }}'
+
+openshift_cluster_content:
+  - object: app-builds
+    content:
+      - name: survey-node-service-cicd
+        template: '{{ playbook_dir }}/templates/survey-node-service-cicd.yml'
+        params: "{{ playbook_dir }}/params/survey-node-service-cicd"
+        namespace: "{{ ci_cd_namespace }}"
+        tags:
+        - ci-cd
+        - survey-node-service
+      - name: survey-node-service-resources
+        template: '{{ playbook_dir }}/templates/survey-node-service-resources.yml'
+        params: "{{ playbook_dir }}/params/survey-node-service-resources"
+        namespace: "{{ dev_namespace }}"
+        tags:
+        - build
+        - survey-node-service
+
