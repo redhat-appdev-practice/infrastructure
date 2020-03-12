@@ -76,17 +76,17 @@ objects:
               valueFrom:
                 secretKeyRef:
                   name: postgresql-persistent-service-binding
-                  key: DATABASE_NAME
+                  key: database_name
             - name: POSTGRES_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: postgresql-persistent-service-binding
-                  key: USERNAME
+                  key: username
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: postgresql-persistent-service-binding
-                  key: PASSWORD
+                  key: password
       triggers:
       - type: ConfigChange
       - imageChangeParams:
