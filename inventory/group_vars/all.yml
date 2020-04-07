@@ -33,6 +33,12 @@ demo:
 edit_role_binding_group:
   GROUP: "rhc-na-appdev-coe"
   ROLE: "{{ role | default('edit') }}"
+c360_edit_rolebinding:
+  GROUP: "consultant-360-devs"
+  ROLE: "{{ role | default('edit') }}"
 admin_role_binding_group:
   GROUP: "rhc-na-appdev-coe-admins"
   ROLE: "admin"
+c360_admin_rolebinding:
+  GROUP: "consultant-360-admins"
+  ROLE: "{{ role | default('edit') }}"
