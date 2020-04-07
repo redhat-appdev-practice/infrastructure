@@ -1,0 +1,175 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: Nexus deployment template with repository configurations
+objects:
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: npm-group
+    labels:
+      nexus-type: repository
+  data:
+    recipe: NpmGroup
+    blobsStoreName: "${BLOBSTORE}"
+    members: npm-all,npm-proxy
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: npm-proxy
+    labels:
+      nexus-type: repository
+  data:
+    recipe: NpmProxy
+    remoteUrl: 'https://registry.npmjs.org/'
+    blobsStoreName: "${BLOBSTORE}"
+    strictContentTypeValidation: 'true'
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: npm-all
+    labels:
+      nexus-type: repository
+  data:
+    recipe: NpmHosted
+    blobsStoreName: "${BLOBSTORE}"
+    strictContentTypeValidation: 'true'
+    writePolicy: ALLOW
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+    name: "${NAME}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: "${VOLUME_CAPACITY}"
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: "${NAME}"
+    labels:
+      app: "${NAME}"
+  spec:
+    replicas: 1
+    selector:
+      name: "${NAME}"
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: "${NAME}"
+      spec:
+        serviceAccount: "${SERVICE_ACCOUNT}"
+        serviceAccountName: "${SERVICE_ACCOUNT}"
+        containers:
+        - image: "${NAME}:latest"
+          imagePullPolicy: Always
+          name: "${NAME}"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8081
+            initialDelaySeconds: 20
+          livenessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /
+              port: 8081
+            initialDelaySeconds: 420
+            timeoutSeconds: 3
+          env:
+            - name: NEXUS_SECURITY_RANDOMPASSWORD
+              value: "false"
+          ports:
+          - containerPort: 8081
+            protocol: TCP
+          resources:
+            limit:
+              memory: ${MEMORY_LIMIT}
+            requests:
+              memory: 256Mi
+          terminationMessagePath: "/dev/termination-log"
+          volumeMounts:
+          - mountPath: "/nexus-data"
+            name: "${NAME}"
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext:
+          capabilities: {}
+          privileged: false
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - persistentVolumeClaim:
+            claimName: "${NAME}"
+          name: "${NAME}"
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - "${NAME}"
+        from:
+          kind: ImageStreamTag
+          name: "${NAME}:latest"
+      type: ImageChange
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      name: "${NAME}"
+      app: "${NAME}"
+    name: "${NAME}"
+  spec:
+    ports:
+    - port: 8081
+      protocol: TCP
+      targetPort: 8081
+    selector:
+      name: "${NAME}"
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      name: "${NAME}"
+      app: "${NAME}"
+    name: "${NAME}"
+  spec:
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    port:
+      targetPort: 8081
+    to:
+      kind: Service
+      name: "${NAME}"
+      weight: 100
+    wildcardPolicy: None
+parameters:
+- name: NAME
+  value: nexus-kubernetes
+- description: Volume space available for data, e.g. 512Mi, 2Gi.
+  displayName: Volume Capacity
+  name: VOLUME_CAPACITY
+  required: true
+  value: 1Gi
+- name: MEMORY_LIMIT
+  description: Maximum amount of memory the container can use.
+  displayName: Memory Limit
+  value: 1Gi
+- name: CONTAINER_IMAGE
+  description: The Container Image to use for the ImageStream
+  displayName: Nexus Container Image
+  value: nexus-kubernetes
+- name: BLOBSTORE
+  value: default
+- name: SERVICE_ACCOUNT
+  value: jenkins
+  description: Service account to be used to run Nexus. Must have rights to READ Secrets/ConfigMaps
+  displayName: Nexus Service Account

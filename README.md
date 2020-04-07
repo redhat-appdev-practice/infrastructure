@@ -18,6 +18,16 @@ ansible-galaxy install -r requirements.yml -p roles
 ansible-playbook site.yml -i inventory/hosts -l bootstrap
 ```
 
+##### Deploy to a different set of namespaces
+```
+ansible-playbook site.yml -e "namespace_prefix=mynamespace"
+```
+This will create:
+* mynamespace-ci-cd
+* mynamespace-dev
+* mynamespace-test
+* mynamespace-demo
+
 ##### Deploying Consultant 360 Applications
 
 ```

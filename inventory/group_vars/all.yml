@@ -1,8 +1,12 @@
 ---
 app_name: consultant-360-fe
 
-ci_cd_namespace: app-dev-ci-cd
-dev_namespace: consultant-360-dev
+namespace_prefix: consultant-360
+
+ci_cd_namespace: "{{ namespace_prefix }}-ci-cd"
+dev_namespace: "{{ namespace_prefix }}-dev"
+test_namespace: "{{ namespace_prefix }}-test"
+demo_namespace: "{{ namespace_prefix }}-demo"
 
 openshift_templates_raw: "https://raw.githubusercontent.com/redhat-cop/openshift-templates"
 openshift_templates_raw_version_tag: "v1.4.12"
@@ -13,6 +17,18 @@ cop_quickstarts_raw_version_tag: "v1.14"
 dev:
   NAMESPACE: "{{ dev_namespace }}"
   NAMESPACE_DISPLAY_NAME: "{{ dev_namespace }}"
+
+test:
+  NAMESPACE: "{{ test_namespace }}"
+  NAMESPACE_DISPLAY_NAME: "{{ test_namespace }}"
+
+ci_cd:
+  NAMESPACE: "{{ ci_cd_namespace }}"
+  NAMESPACE_DISPLAY_NAME: "{{ ci_cd_namespace }}"
+
+demo:
+  NAMESPACE: "{{ demo_namespace }}"
+  NAMESPACE_DISPLAY_NAME: "{{ demo_namespace }}"
 
 edit_role_binding_group:
   GROUP: "rhc-na-appdev-coe"
