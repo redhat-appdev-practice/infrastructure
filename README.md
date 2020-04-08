@@ -15,12 +15,12 @@ ansible-galaxy install -r requirements.yml -p roles
 ##### Bootstrapping Projects and Creating Roles
 
 ```
-ansible-playbook site.yml -i inventory/hosts -l bootstrap
+ansible-playbook -i inventory/ site.yml -l bootstrap
 ```
 
 ##### Deploy to a different set of namespaces
 ```
-ansible-playbook site.yml -e "namespace_prefix=mynamespace"
+ansible-playbook -i inventory/ site.yml -e "namespace_prefix=mynamespace"
 ```
 This will create:
 * mynamespace-ci-cd
@@ -31,19 +31,19 @@ This will create:
 ##### Deploying Consultant 360 Applications
 
 ```
-ansible-playbook site.yml -i inventory/hosts -l consultant360
+ansible-playbook site.yml -i inventory/ -l consultant360
 ```
 
 ##### Deploying only the Survey OpenAPI Documentation Website
 
 ```
-ansible-playbook site.yml -i inventory/hosts -l consultant360 -e "include_tags=survey-openapi"
+ansible-playbook site.yml -i inventory/ -l consultant360 -e "include_tags=survey-openapi"
 ```
 
 ##### Deploying only the Persistent Postgres Database
 
 ```
-ansible-playbook site.yml -i inventory/hosts -l consultant360 -e "include_tags=persistent-postgres"
+ansible-playbook site.yml -i inventory/ -l consultant360 -e "include_tags=persistent-postgres"
 ```
 
 ## Mac Users!
@@ -53,5 +53,5 @@ ansible-playbook site.yml -i inventory/hosts -l consultant360 -e "include_tags=p
 ##### Example
 
 ```
-OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES ansible-playbook site.yml -i inventory/hosts -l consultant360 -e "include_tags=survey-openapi"
+OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES ansible-playbook site.yml -i inventory/ -l consultant360 -e "include_tags=survey-openapi"
 ```
