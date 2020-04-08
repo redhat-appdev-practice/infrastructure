@@ -1,6 +1,9 @@
 [bootstrap]
 projects-and-policies
 
+[tools]
+ci-cd-tooling
+
 [consultant360]
 frontend
 survey-openapi-web

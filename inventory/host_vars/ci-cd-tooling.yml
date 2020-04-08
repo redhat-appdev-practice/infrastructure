@@ -1,0 +1,251 @@
+---
+ansible_connection: local
+
+jenkins_name: jenkins
+sonarqube_name: sonarqube
+hoverfly_name: hoverfly
+nexus_password: "admin123"
+
+jenkins_persistence_type: "ephemeral"
+
+jenkins:
+  deploy:
+    NAMESPACE: "openshift"
+    JENKINS_IMAGE_STREAM_TAG: "{{ jenkins_name }}:latest"
+    MEMORY_LIMIT: 6Gi
+    JENKINS_OPTS: "--sessionTimeout=720"
+    VOLUME_CAPACITY: 20Gi
+    MEMORY_REQUEST: 2Gi
+    JVM_ARCH: x86_64
+    GITLAB_HOST: "gitlab.mydomain.example.com"
+    GITLAB_TOKEN: "token123"
+    GITLAB_GROUP_NAME: "rht-labs"
+
+jenkins_slaves:
+  build:
+    ansible:
+      NAME: jenkins-slave-ansible
+      SOURCE_CONTEXT_DIR: jenkins-slaves/jenkins-slave-ansible
+      SOURCE_REPOSITORY_REF: "{{ cop_quickstarts_raw_version_tag }}"
+      SOURCE_REPOSITORY_URL: "{{ cop_quickstarts }}"
+    arachni:
+      NAME: jenkins-slave-arachni
+      SOURCE_CONTEXT_DIR: jenkins-slaves/jenkins-slave-arachni
+      SOURCE_REPOSITORY_REF: "{{ cop_quickstarts_raw_version_tag }}"
+      SOURCE_REPOSITORY_URL: "{{ cop_quickstarts }}"
+    gradle:
+      NAME: jenkins-slave-gradle
+      SOURCE_CONTEXT_DIR: jenkins-slaves/jenkins-slave-gradle
+      SOURCE_REPOSITORY_REF: "{{ cop_quickstarts_raw_version_tag }}"
+      SOURCE_REPOSITORY_URL: "{{ cop_quickstarts }}"
+    mvn:
+      BUILDER_IMAGE_NAME: quay.io/openshift/origin-jenkins-agent-maven:4.2
+      NAME: jenkins-slave-mvn
+      SOURCE_CONTEXT_DIR: jenkins-slaves/jenkins-slave-mvn
+      SOURCE_REPOSITORY_REF: "{{ cop_quickstarts_raw_version_tag }}"
+      SOURCE_REPOSITORY_URL: "{{ cop_quickstarts }}"
+    npm:
+      BUILDER_IMAGE_NAME: openshift/jenkins-slave-base-centos7:v3.11
+      NAME: jenkins-slave-npm
+      SOURCE_CONTEXT_DIR: jenkins-slaves/jenkins-slave-npm
+      SOURCE_REPOSITORY_REF: "{{ cop_quickstarts_raw_version_tag }}"
+      SOURCE_REPOSITORY_URL: "{{ cop_quickstarts }}"
+    zap:
+      BUILDER_IMAGE_NAME: centos:centos7
+      NAME: jenkins-slave-zap
+      SOURCE_CONTEXT_DIR: jenkins-slaves/jenkins-slave-zap
+      SOURCE_REPOSITORY_REF: "{{ cop_quickstarts_raw_version_tag }}"
+      SOURCE_REPOSITORY_URL: "{{ cop_quickstarts }}"
+
+nexus:
+  build:
+    NAME: nexus
+    REPOSITORY_URL: https://github.com/sonatype-nexus-community/nexus-kubernetes-openshift.git
+    DOCKERFILE_PATH: Dockerfile
+    SOURCE_IMAGE: sonatype/nexus3:latest
+  secret:
+    SECRET_NAME: "nexus"
+    USERNAME: admin
+    PASSWORD: "{{ nexus_password }}"
+  deploy:
+    NAME: nexus
+    VOLUME_CAPACITY: 10Gi
+    MEMORY_LIMIT: 2Gi
+    CONTAINER_IMAGE: "{{ ci_cd_namespace }}/nexus:latest"
+
+## Versions of SonarQube > 7.7 require kernel features which are not possible as of OpenShift 4.3
+## Explanation: https://www.elastic.co/guide/en/elasticsearch/reference/master/_maximum_map_count_check.html
+sonarqube:
+  build:
+    NAME: "{{ sonarqube_name }}"
+    SOURCE_REPOSITORY_URL: "{{ cop_quickstarts }}"
+    SOURCE_REPOSITORY_REF: "{{ cop_quickstarts_raw_version_tag }}"
+    SOURCE_CONTEXT_DIR: sonarqube
+    FROM_DOCKER_IMAGE: sonarqube
+    FROM_DOCKER_TAG: "7.7-community"
+    FROM_DOCKER_IMAGE_REGISTRY_URL: "docker.io/sonarqube"
+  postgresql:
+    POSTGRESQL_DATABASE: sonar
+    VOLUME_CAPACITY: 5Gi
+    POSTGRESQL_PASSWORD: sonar
+    POSTGRESQL_USER: sonar
+    DATABASE_SERVICE_NAME: sonardb
+  deploy:
+    POSTGRES_DATABASE_NAME: "sonar"
+
+zalenium:
+  NAMESPACE: "{{ ci_cd_namespace }}"
+  IMAGE: "dosel/zalenium:latest"
+  CPU_REQUEST: 200m
+  MEMORY_REQUEST: 400Mi
+  CPU_LIMIT: 1000m
+  MEMORY_LIMIT: 2Gi
+
+hoverfly:
+  build:
+    NAME: "{{ hoverfly_name }}"
+    SOURCE_REPOSITORY_URL: "{{ cop_quickstarts }}"
+    SOURCE_REPOSITORY_REF: "{{ cop_quickstarts_raw_version_tag }}"
+    SOURCE_CONTEXT_DIR: hoverfly
+  deploy:
+    NAMESPACE: "{{ ci_cd_namespace }}"
+    MEMORY_LIMIT: 2Gi
+    HOVERFLY_IMAGE_STREAM_TAG: "{{ hoverfly_name }}:latest"
+
+
+openshift_cluster_content:
+- galaxy_requirements:
+  - pre_post_requirements.yml # Uses openshift-label role from casl-ansible
+# CI/CD builds are customisations to base software to enhance their functionality or make them OCP ready 
+- object: ci-cd-builds
+  content:
+  - name: tool-box
+    template: "{{ cop_quickstarts_raw }}/{{ cop_quickstarts_raw_version_tag }}/build-docker-generic/.openshift/templates/docker-build-template.yml"
+    params_from_vars:
+      NAME: tool-box
+      SOURCE_REPOSITORY_URL: "{{ cop_quickstarts }}"
+      SOURCE_REPOSITORY_REF: v1.1
+      SOURCE_CONTEXT_DIR: tool-box
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - tool-box
+    - ci-cd-builds
+  - name: hoverfly
+    template: "{{ cop_quickstarts_raw }}/{{ cop_quickstarts_raw_version_tag }}/build-docker-generic/.openshift/templates/docker-build-template.yml"
+    params_from_vars: "{{ hoverfly.build }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - hoverfly
+    - ci-cd-builds
+  - name: sonarqube
+    template: "{{ cop_quickstarts_raw }}/{{ cop_quickstarts_raw_version_tag }}/build-docker-generic/.openshift/templates/docker-build-template-override-FROM.yml"
+    params_from_vars: "{{ sonarqube.build }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - sonarqube
+    - sonarqube-build
+    - ci-cd-builds
+  - name: nexus-kubernetes
+    template: "{{ inventory_dir }}/../templates/nexus/build.yml"
+    params_from_vars: "{{ nexus.build }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - nexus
+    - nexus-build
+    - ci-cd-builds
+
+# Secrets stored in OCP land and sync'd to Jenkins for consumption
+- object: ci-cd-secrets
+  content:
+  - name: nexus-secret
+    template: "{{ openshift_templates_raw }}/{{ openshift_templates_raw_version_tag }}/secrets/secret-user-pass-plaintext.yml"
+    params_from_vars: "{{ nexus.secret }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - jenkins
+    - secret
+    - ci-cd-secrets
+
+# Jenkins slave agents to give him some superpowers in OCP land
+- object: jenkins-slave-nodes
+  content:
+  - name: jenkins-slave-agents
+    template: "{{ cop_quickstarts_raw }}/{{ cop_quickstarts_raw_version_tag }}/.openshift/templates/jenkins-slave-generic-template.j2"
+    params_from_vars: "{{ jenkins_slaves.build }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - jenkins-slaves
+
+# CI/CD Deployments is the OpenShift Deployment Configs and all
+# supporting tooling, pre and post hooks needed to setup and configure a comprehensive tool chain
+- object: ci-cd-deployments
+  content: ## SONARQUBE DB DEPLOYMENT MUST COME BEFORE SONARQUBE DEPLOYMENT OR THE JDBC SECRETS WILL NOT BE CREATED PROPERLY
+  - name: sonardb
+    template: "openshift//postgresql-persistent"
+    params_from_vars: "{{ sonarqube.postgresql }}"
+    namespace: "{{ ci_cd_namespace }}"
+    post_steps:
+    - role: casl-ansible/roles/openshift-labels
+      vars:
+        target_namespace: "{{ ci_cd_namespace }}"
+        label: "app=sonarqube"
+        target_object: dc
+        target_name: sonardb
+    - role: casl-ansible/roles/openshift-labels
+      vars:
+        target_namespace: "{{ ci_cd_namespace }}"
+        label: "app=sonarqube"
+        target_object: svc
+        target_name: sonardb
+    - role: casl-ansible/roles/openshift-labels
+      vars:
+        target_namespace: "{{ ci_cd_namespace }}"
+        label: "app=sonarqube"
+        target_object: secret
+        target_name: sonardb
+    tags:
+      - sonarqube
+      - sonarqube-postgresql
+      - sonarqube-postgresql-deploy
+      - ci-cd-deployments
+  - name: sonarqube
+    template: "{{ cop_quickstarts_raw }}/{{ cop_quickstarts_raw_version_tag }}/sonarqube/.openshift/templates/sonarqube-deployment-template.yml"
+    params_from_vars: "{{ sonarqube.deploy }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+      - sonarqube
+      - sonarqube-deploy
+      - ci-cd-deployments
+  - name: nexus
+    template: "{{ inventory_dir }}/../templates/nexus/deployment.yml"
+    params_from_vars: "{{ nexus.deploy }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+      - nexus
+      - nexus-deploy
+      - ci-cd-deployments
+  - name: jenkins
+    template: "{{ openshift_templates_raw }}/{{ openshift_templates_raw_version_tag }}/jenkins/jenkins-{{ jenkins_persistence_type }}-template.yml"
+    params_from_vars: "{{ jenkins.deploy }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+      - jenkins
+      - jenkins-deploy
+      - jenkins-{{ jenkins_persistence_type }}
+      - ci-cd-deployments
+  - name: zalenium
+    template: "{{ cop_quickstarts_raw }}/{{ cop_quickstarts_raw_version_tag }}/zalenium/.openshift/templates/zalenium-deployment.yml"
+    params_from_vars: "{{ zalenium }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+      - zalenium
+      - zalenium-deploy
+      - ci-cd-deployments
+  - name: hoverfly
+    template: "{{ cop_quickstarts_raw }}/{{ cop_quickstarts_raw_version_tag }}/hoverfly/.openshift/templates/hoverfly-deployment-template.yml"
+    params_from_vars: "{{ hoverfly.deploy }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+      - hoverfly
+      - hoverfly-deploy
+      - ci-cd-deployments

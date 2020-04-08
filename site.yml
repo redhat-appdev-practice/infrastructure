@@ -5,6 +5,12 @@
     - include_role:
         name: openshift-applier/roles/openshift-applier
 
+- name: Deploy CI/CD Tooling
+  hosts: tools
+  tasks:
+    - include_role:
+        name: openshift-applier/roles/openshift-applier
+
 - name: Build and Deploy Consulting-360
   hosts: consultant360
   tasks:
