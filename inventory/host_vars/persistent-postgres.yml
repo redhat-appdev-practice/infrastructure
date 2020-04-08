@@ -17,8 +17,22 @@ openshift_cluster_content:
     - name: survey-db
       template: openshift//postgresql-persistent
       params_from_vars: "{{ surveydb }}"
-      namespace: "consultant-360-dev"
+      namespace: "{{ dev_namespace }}"
       tags:
       - app-dev-deploy
-      - health-db-deploy
+      - survey-db-deploy
+    - name: survey-db
+      template: openshift//postgresql-persistent
+      params_from_vars: "{{ surveydb }}"
+      namespace: "{{ test_namespace }}"
+      tags:
+      - app-test-deploy
+      - survey-db-deploy
+    - name: survey-db
+      template: openshift//postgresql-persistent
+      params_from_vars: "{{ surveydb }}"
+      namespace: "{{ demo_namespace }}"
+      tags:
+      - app-demo-deploy
+      - survey-db-deploy
 
