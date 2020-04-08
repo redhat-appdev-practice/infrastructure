@@ -73,6 +73,8 @@ nexus:
     MEMORY_LIMIT: 2Gi
     CONTAINER_IMAGE: "{{ ci_cd_namespace }}/nexus:latest"
 
+## Versions of SonarQube > 7.7 require kernel features which are not possible as of OpenShift 4.3
+## Explanation: https://www.elastic.co/guide/en/elasticsearch/reference/master/_maximum_map_count_check.html
 sonarqube:
   build:
     NAME: "{{ sonarqube_name }}"
