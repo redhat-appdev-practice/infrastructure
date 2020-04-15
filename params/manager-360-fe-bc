@@ -1,3 +1,0 @@
-PIPELINE_SOURCE_REPOSITORY_URL=https://gitlab.consulting.redhat.com/appdev-coe/consultant-360-feedback/manager-360-front.git
-PIPELINE_SOURCE_REPOSITORY_REF=
-NAME=manager-360-fe

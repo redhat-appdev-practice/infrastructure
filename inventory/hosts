@@ -5,9 +5,6 @@ projects-and-policies
 ci-cd-tooling
 
 [consultant360]
-frontend
-survey-openapi-web
 survey-spring-service
 survey-node-service
-manager-frontend
-persistent-postgres
+

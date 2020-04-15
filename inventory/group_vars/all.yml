@@ -1,7 +1,7 @@
 ---
 app_name: consultant-360-fe
 
-namespace_prefix: consultant-360
+namespace_prefix: appdev-example
 
 ci_cd_namespace: "{{ namespace_prefix }}-ci-cd"
 dev_namespace: "{{ namespace_prefix }}-dev"
