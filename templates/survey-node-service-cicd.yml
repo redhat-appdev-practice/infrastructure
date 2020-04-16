@@ -36,7 +36,7 @@ objects:
     source:
       type: Git
       git:
-        uri: https://gitlab.consulting.redhat.com/appdev-coe/consultant-360-feedback/survey-node-service.git
+        uri: https://github.com/redhat-appdev-practice/survey-node-service.git
       sourceSecret:
         name: gitlab-auth
     strategy:
