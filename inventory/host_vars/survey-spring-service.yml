@@ -23,7 +23,7 @@ openshift_cluster_content:
         - survey-spring-service
       - name: surveydb
         template: openshift//postgresql-persistent
-        params_from_vars: "{{ sruveydb }}"
+        params_from_vars: "{{ surveydb }}"
         namespace: "{{ dev_namespace }}"
         tags:
         - dev

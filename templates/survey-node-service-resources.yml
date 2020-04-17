@@ -16,7 +16,6 @@ objects:
         build: '${NAME}'
       name: '${NAME}'
     spec: {}
-
   - apiVersion: v1
     kind: Service
     metadata:
@@ -26,7 +25,7 @@ objects:
     spec:
       selector:
         deploymentConfig: "${NAME}"
-      ports: 
+      ports:
       - port: 8080
         targetPort: 8080
   - apiVersion: v1
@@ -39,7 +38,6 @@ objects:
       host: ""
       to:
         name: "${NAME}"
-
   - apiVersion: v1
     kind: DeploymentConfig
     metadata:
@@ -47,7 +45,7 @@ objects:
         app: "${NAME}"
       name: "${NAME}"
     spec:
-      strategy: 
+      strategy:
         type: Rolling
       replicas: 1
       selector:
@@ -58,14 +56,32 @@ objects:
             app: "${NAME}"
             deploymentConfig: "${NAME}"
           name: "${NAME}"
-        spec: 
+        spec:
           containers:
           - name: "${NAME}"
             image: "${NAME}:latest"
             imagePullPolicy: Always
-            ports: 
+            ports:
             - containerPort: 8080
               protocol: TCP
+            env:
+            - name: POSTGRES_URI
+              value: "jdbc:postgresql://surveydb:5432/surveydb"
+            - name: POSTGRES_DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: surveydb
+                  key: database-name
+            - name: POSTGRES_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: surveydb
+                  key: database-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: surveydb
+                  key: database-password
       triggers:
       - type: ConfigChange
       - imageChangeParams:
@@ -76,7 +92,6 @@ objects:
             kind: ImageStreamTag
             name: "${NAME}:latest"
         type: ImageChange
-
 parameters:
   - name: NAME
     displayName: Name
