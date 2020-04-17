@@ -5,6 +5,15 @@
     - include_role:
         name: openshift-applier/roles/openshift-applier
 
+- name: remove-limit-ranges-ci-cd
+  command: "oc delete limitrange -n {{ ci_cd_namespace }} {{ ci_cd_namespace }}-core-resource-limits"
+- name: remove-limit-ranges-dev
+  command: "oc delete limitrange -n {{ dev_namespace }} {{ dev_namespace }}-core-resource-limits"
+- name: remove-limit-ranges-test
+  command: "oc delete limitrange -n {{ test_namespace }} {{ test_namespace }}-core-resource-limits"
+- name: remove-limit-ranges-demo
+  command: "oc delete limitrange -n {{ demo_namespace }} {{ demo_namespace }}-core-resource-limits"
+
 - name: Deploy CI/CD Tooling
   hosts: tools
   tasks:
