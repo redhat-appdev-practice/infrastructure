@@ -4,6 +4,13 @@ ansible_connection: local
 build:
   NAME: '{{ app_name }}'
 
+surveydb:
+  DATABASE_SERVICE_NAME: 'surveydb'
+  POSTGRESQL_DATABASE: 'surveydb'
+  VOLUME_CAPACITY: '5Gi'
+  POSTGRESQL_PASSWORD: 'somepassword'
+  POSTGRESQL_USER: 'someusername'
+
 openshift_cluster_content:
   - object: app-builds
     content:
@@ -14,11 +21,18 @@ openshift_cluster_content:
         tags:
         - ci-cd
         - survey-spring-service
+      - name: surveydb
+        template: openshift//postgresql-persistent
+        params_from_vars: "{{ sruveydb }}"
+        namespace: "{{ dev_namespace }}"
+        tags:
+        - dev
+        - surveydb
       - name: survey-spring-service-resources
         template: '{{ playbook_dir }}/templates/survey-spring-service-resources.yml'
         params: "{{ playbook_dir }}/params/survey-spring-service-resources"
         namespace: "{{ dev_namespace }}"
         tags:
-        - build
+        - dev
         - survey-spring-service
 
