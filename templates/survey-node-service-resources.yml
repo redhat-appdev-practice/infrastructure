@@ -64,24 +64,6 @@ objects:
             ports:
             - containerPort: 8080
               protocol: TCP
-            env:
-            - name: POSTGRES_URI
-              value: "jdbc:postgresql://surveydb:5432/surveydb"
-            - name: POSTGRES_DATABASE_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: surveydb
-                  key: database-name
-            - name: POSTGRES_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: surveydb
-                  key: database-user
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: surveydb
-                  key: database-password
       triggers:
       - type: ConfigChange
       - imageChangeParams:
