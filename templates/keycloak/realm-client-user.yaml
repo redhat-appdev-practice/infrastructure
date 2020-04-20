@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: Template
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+objects:
+- apiVersion: keycloak.org/v1alpha1
+  kind: KeycloakRealm
+  metadata:
+    finalizers:
+    - realm.cleanup
+    generation: 1
+    labels:
+      app: "${NAME}"
+      realm: "${REALM}"
+    name: "keycloak-realm-${REALM}"
+  spec:
+    instanceSelector:
+      matchLabels:
+        app: "${NAME}"
+    realm:
+      displayName: "${REALM} Environment Realm"
+      enabled: true
+      id: "${REALM}"
+      realm: "${REALM}"
+  status: {}
+- apiVersion: keycloak.org/v1alpha1
+  kind: KeycloakClient
+  metadata:
+    name: "${REALM}-client-secret"
+    labels:
+      realm: "${REALM}"
+  spec:
+    realmSelector:
+      matchLabels:
+        realm: "${REALM}"
+    client:
+      clientId: "${CLIENT_ID}"
+      secret: "${CLIENT_SECRET}"
+      clientAuthenticatorType: client-secret
+- apiVersion: keycloak.org/v1alpha1
+  kind: KeycloakUser
+  metadata:
+    finalizers:
+    - user.cleanup
+    generation: 4
+    labels:
+      app: "${NAME}"
+    name: "realm-${REALM}-user-jqconsultant"
+  spec:
+    realmSelector:
+      matchLabels:
+        realm: "${REALM}"
+    user:
+      clientRoles:
+        account:
+        - manage-account
+        realm-management:
+        - manage-users
+      credentials:
+      - type: password
+        value: letmein
+      email: jqconsultant@redhat.com
+      emailVerified: true
+      enabled: true
+      firstName: John
+      lastName: Consultant
+      realmRoles:
+      - offline_access
+      username: jqconsultant
+  status: {}
+- apiVersion: keycloak.org/v1alpha1
+  kind: KeycloakUser
+  metadata:
+    finalizers:
+    - user.cleanup
+    generation: 4
+    labels:
+      app: "${NAME}"
+    name: "realm-${REALM}-user-jpmanager"
+  spec:
+    realmSelector:
+      matchLabels:
+        realm: "${REALM}"
+    user:
+      clientRoles:
+        account:
+        - manage-account
+        realm-management:
+        - manage-users
+      credentials:
+      - type: password
+        value: letmein
+      email: jpmanager@redhat.com
+      emailVerified: true
+      enabled: true
+      firstName: Jane
+      lastName: Manager
+      realmRoles:
+      - offline_access
+      username: jpmanager
+  status: {}
+parameters:
+- name: NAME
+  required: true
+  value: sso
+  displayName: Name
+  description: The name of the KeyCloak instance
+- name: REALM
+  required: true
+  description: The name of the KeyCloak Realm
+  displayNam: Realm
+- name: CLIENT_ID
+  required: true
+  value: consultant360
+- name: CLIENT_SECRET
+  generate: expression
+  from: "[a-z0-9]{24}"

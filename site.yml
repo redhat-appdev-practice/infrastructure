@@ -5,14 +5,40 @@
     - include_role:
         name: openshift-applier/roles/openshift-applier
 
-- name: remove-limit-ranges-ci-cd
-  command: "oc delete limitrange -n {{ ci_cd_namespace }} {{ ci_cd_namespace }}-core-resource-limits"
-- name: remove-limit-ranges-dev
-  command: "oc delete limitrange -n {{ dev_namespace }} {{ dev_namespace }}-core-resource-limits"
-- name: remove-limit-ranges-test
-  command: "oc delete limitrange -n {{ test_namespace }} {{ test_namespace }}-core-resource-limits"
-- name: remove-limit-ranges-demo
-  command: "oc delete limitrange -n {{ demo_namespace }} {{ demo_namespace }}-core-resource-limits"
+- name: Remove limit ranges
+  hosts: bootstrap
+  tasks:
+  - name: remove-limit-ranges-ci-cd
+    command: "oc delete limitrange -n {{ ci_cd_namespace }} {{ ci_cd_namespace }}-core-resource-limits"
+  - name: remove-limit-ranges-dev
+    command: "oc delete limitrange -n {{ dev_namespace }} {{ dev_namespace }}-core-resource-limits"
+  - name: remove-limit-ranges-test
+    command: "oc delete limitrange -n {{ test_namespace }} {{ test_namespace }}-core-resource-limits"
+  - name: remove-limit-ranges-demo
+    command: "oc delete limitrange -n {{ demo_namespace }} {{ demo_namespace }}-core-resource-limits"
+
+- name: 'Deploy items which require elevated privileges in OpenShift'
+  hosts: cluster-admin
+  tasks:
+    - name: 'Check to see if CRDs are already created'
+      shell: oc get CustomResourceDefinition keycloaks.keycloak.org
+      register: are_keycloak_crds_present
+      ignore_errors: True
+    - name: 'Check for create/edit ClusterRoleBinding privilege'
+      shell: oc auth can-i create ClusterRoleBindings
+      register: cluster_role_bindings
+      ignore_errors: True
+    - name: 'Check for create/edit CustomResourceDefinition privilege'
+      shell: oc auth can-i create CustomResourceDefinition
+      register: custom_resource_definitions
+      ignore_errors: True
+    ## Only attempt to deploy KeyCloak Operator IF we have the correct rights AND it is not already deployed
+    - include_role:
+        name: openshift-applier/roles/openshift-applier
+      when:
+        are_keycloak_crds_present.rc != 0 and (cluster_role_bindings.rc + custom_resource_definitions.rc) == 0
+      tags:
+        - openshift-applier
 
 - name: Deploy CI/CD Tooling
   hosts: tools

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Template
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+objects:
+- apiVersion: keycloak.org/v1alpha1
+  kind: Keycloak
+  metadata:
+    labels:
+      app: "${NAME}"
+    name: "${NAME}-keycloak"
+  spec:
+    extensions:
+    - https://github.com/aerogear/keycloak-metrics-spi/releases/download/1.0.4/keycloak-metrics-spi-1.0.4.jar
+    externalAccess:
+      enabled: true
+    instances: 1
+  status: {}
+parameters:
+- name: NAME
+  required: true
+  value: sso
+  required: true
+  displayName: Name
+  description: The name of the KeyCloak instance
+  apiVersion: v1
