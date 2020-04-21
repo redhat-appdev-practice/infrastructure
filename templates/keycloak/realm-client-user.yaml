@@ -98,6 +98,7 @@ objects:
       lastName: Manager
       realmRoles:
       - offline_access
+      - project_manager
       username: jpmanager
   status: {}
 parameters:
