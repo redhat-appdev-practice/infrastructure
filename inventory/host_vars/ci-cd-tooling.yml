@@ -112,6 +112,20 @@ hoverfly:
     MEMORY_LIMIT: 2Gi
     HOVERFLY_IMAGE_STREAM_TAG: "{{ hoverfly_name }}:latest"
 
+keycloak_name: sso
+
+keycloak:
+  deploy:
+    NAME: "{{ keycloak_name }}"
+  dev:
+    NAME: "{{ keycloak_name }}"
+    REALM: dev
+  test:
+    NAME: "{{ keycloak_name }}"
+    REALM: test
+  demo:
+    NAME: "{{ keycloak_name }}"
+    REALM: demo
 
 openshift_cluster_content:
 - galaxy_requirements:
@@ -175,6 +189,37 @@ openshift_cluster_content:
     namespace: "{{ ci_cd_namespace }}"
     tags:
     - jenkins-slaves
+
+- object: keycloak
+  content:
+  - name: keycloak-server
+    template: "{{ inventory_dir }}/../templates/keycloak/deployment.yaml"
+    params_from_vars: "{{ keycloak.deploy }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - keycloak
+    - keycloak-deployment
+  - name: keycloak-dev
+    template: "{{ inventory_dir }}/../templates/keycloak/realm-client-user.yaml"
+    params_from_vars: "{{ keycloak.dev }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - keycloak
+    - keycloak-dev
+  - name: keycloak-test
+    template: "{{ inventory_dir }}/../templates/keycloak/realm-client-user.yaml"
+    params_from_vars: "{{ keycloak.test }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - keycloak
+    - keycloak-test
+  - name: keycloak-demo
+    template: "{{ inventory_dir }}/../templates/keycloak/realm-client-user.yaml"
+    params_from_vars: "{{ keycloak.demo }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - keycloak
+    - keycloak-demo
 
 # CI/CD Deployments is the OpenShift Deployment Configs and all
 # supporting tooling, pre and post hooks needed to setup and configure a comprehensive tool chain
