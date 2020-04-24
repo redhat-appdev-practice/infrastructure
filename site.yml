@@ -8,14 +8,25 @@
 - name: Remove limit ranges
   hosts: bootstrap
   tasks:
+  - name: 'Check Permissions'
+    shell: oc auth can-i delete LimitRange
+    register: oc_limit_delete
+  - name: notify-if-not-allowed-to-delete
+    fail:
+        msg: User does not have permission to delete limitRange, if this is an error please contact your cluster administrator.
+    when: oc_limit_delete.stdout == 'no'
   - name: remove-limit-ranges-ci-cd
     command: "oc delete limitrange -n {{ ci_cd_namespace }} {{ ci_cd_namespace }}-core-resource-limits"
+    when: oc_limit_delete.stdout == 'yes'
   - name: remove-limit-ranges-dev
     command: "oc delete limitrange -n {{ dev_namespace }} {{ dev_namespace }}-core-resource-limits"
+    when: oc_limit_delete.stdout == 'yes'
   - name: remove-limit-ranges-test
     command: "oc delete limitrange -n {{ test_namespace }} {{ test_namespace }}-core-resource-limits"
+    when: oc_limit_delete.stdout == 'yes'
   - name: remove-limit-ranges-demo
     command: "oc delete limitrange -n {{ demo_namespace }} {{ demo_namespace }}-core-resource-limits"
+    when: oc_limit_delete.stdout == 'yes'
 
 - name: 'Deploy items which require elevated privileges in OpenShift'
   hosts: cluster-admin
