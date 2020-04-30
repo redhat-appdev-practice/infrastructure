@@ -8,7 +8,7 @@ The `appdev-example-ci-cd` project has the Jenkins server and manages the build 
 
 Before we start, log in to the target cluster with the `oc` CLI tool. 
 
-If you need access to a cluster, create a temporary 4.x cluster at [https://labs.opentlc.com](OpenTLC).
+If you need access to a cluster, create a temporary 4.x cluster at [OpenTLC](https://labs.opentlc.com).
 
 ## Clone this repository
 
