@@ -4,6 +4,9 @@ This playbook will create all the resources required for the consultant 360 appl
 
 [OCP 4.1 Cluster](https://console-openshift-console.apps.shared-dev.dev.openshift.opentlc.com/)
 
+### Documentation on Deploying Services
+[Deploying a Service](docs/deploying-a-service.md)
+
 #### Openshift Applier
 
 ```
