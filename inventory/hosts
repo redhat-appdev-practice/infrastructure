@@ -8,3 +8,6 @@ ci-cd-tooling
 survey-spring-service
 survey-node-service
 
+[cluster-admin]
+cluster-admin
+
