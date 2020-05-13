@@ -1,6 +1,22 @@
 ---
 ansible_connection: local
 
+keycloak_name: sso
+
+keycloak:
+  deploy:
+    NAME: "{{ keycloak_name }}"
+  dev:
+    NAME: "{{ keycloak_name }}"
+    REALM: dev
+  test:
+    NAME: "{{ keycloak_name }}"
+    REALM: test
+  demo:
+    NAME: "{{ keycloak_name }}"
+    REALM: demo
+
+
 openshift_cluster_content:
 - object: keycloak-custom-resources
   content:
@@ -12,3 +28,36 @@ openshift_cluster_content:
     - keycloak
     - keycloak-operator
     - operator-crds
+
+- object: keycloak
+  content:
+  - name: keycloak-server
+    template: "{{ inventory_dir }}/../templates/keycloak/deployment.yaml"
+    params_from_vars: "{{ keycloak.deploy }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - keycloak
+    - keycloak-deployment
+  - name: keycloak-dev
+    template: "{{ inventory_dir }}/../templates/keycloak/realm-client-user.yaml"
+    params_from_vars: "{{ keycloak.dev }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - keycloak
+    - keycloak-dev
+  - name: keycloak-test
+    template: "{{ inventory_dir }}/../templates/keycloak/realm-client-user.yaml"
+    params_from_vars: "{{ keycloak.test }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - keycloak
+    - keycloak-test
+  - name: keycloak-demo
+    template: "{{ inventory_dir }}/../templates/keycloak/realm-client-user.yaml"
+    params_from_vars: "{{ keycloak.demo }}"
+    namespace: "{{ ci_cd_namespace }}"
+    tags:
+    - keycloak
+    - keycloak-demo
+
+
