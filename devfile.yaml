@@ -1,0 +1,47 @@
+apiVersion: 1.0.0
+metadata:
+  generateName: service-mesh-installation
+projects:
+  - name: infrastructure
+    source:
+      location: 'https://github.com/redhat-appdev-practice/infrastructure.git'
+      type: git
+      branch: devfile
+  - name: openshift-applier
+    source:
+      location: 'https://github.com/redhat-cop/openshift-applier.git'
+      type: git
+      branch: master
+    clonePath: infrastructure/roles/openshift-applier
+components:
+  - alias: ansible
+    type: dockerimage
+    image: quay.io/ansible-tower/ansible-runner
+    memoryLimit: 512M
+    mountSources: true
+    args:
+      - tail
+      - '-f'
+      - /dev/null
+    env:
+      - name: HOME
+        value: /projects/
+  - id: redhat/vscode-yaml/latest
+    type: chePlugin
+commands:
+  - name: "Configure Pre-Req"
+    actions:
+      - type: exec
+        command: ansible-playbook -i inventory/ site.yml -l bootstrap
+        component: ansible
+        workdir: /projects/infrastructure
+  - name: "Install Test Namespace"
+    actions:
+      - type: exec
+        command: ansible-playbook -i inventory/ site.yml -e "namespace_prefix=mynamespace"
+        component: ansible
+        workdir: /projects/infrastructure
+
+
+
+
